@@ -13,11 +13,12 @@
 </template>
 
 <script>
+import axios from "axios";
 import mapboxgl from "mapbox-gl";
 import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
 
 export default {
-  name: "Home",
+  name: "Map",
   data() {
     return {
       accessToken: "pk.eyJ1IjoiYmF0Y3Jhenk3NDEiLCJhIjoiY2txNjRkMWsyMHY3eTJ4bnR1cWRkYXZqZiJ9.62M5-Fnm7f16nc1Uh_HpOQ",
@@ -28,6 +29,7 @@ export default {
       center: [108.2772, 14.0583],
       startCoord: [],
       destiCoord: [],
+      routeData: [],
     };
   },
 
@@ -56,7 +58,31 @@ export default {
           accessToken: mapboxgl.accessToken,
           mapboxgl: mapboxgl,
           marker: { color: "orange" },
+
           placeholder: "Search for places in Berkeley",
+        });
+
+        geocoder.on("result", async ({ result }) => {
+          const destCoords = result.center;
+          const resGEO = await axios.get(
+            `https://api.mapbox.com/directions/v5/mapbox/driving/${this.startCoord[0]},${this.startCoord[1]};${destCoords[0]},${destCoords[1]}?geometries=geojson&access_token=${this.accessToken}`
+          );
+          this.routeData = resGEO.data.routes[0].geometry;
+          map.addLayer({
+            id: "route",
+            type: "line",
+            source: {
+              type: "geojson",
+              data: {
+                type: "Feature",
+                geometry: this.routeData,
+              },
+            },
+            paint: {
+              "line-width": 7,
+              "line-color": "rgba(0, 0, 0, 0.25)",
+            },
+          });
         });
 
         map.addControl(geocoder);
