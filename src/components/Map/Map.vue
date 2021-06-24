@@ -39,7 +39,6 @@ export default {
       this.map.resize();
     });
   },
-
   methods: {
     // init map
     getMap: function (center, zoom, container) {
@@ -68,6 +67,13 @@ export default {
             `https://api.mapbox.com/directions/v5/mapbox/driving/${this.startCoord[0]},${this.startCoord[1]};${destCoords[0]},${destCoords[1]}?geometries=geojson&access_token=${this.accessToken}`
           );
           this.routeData = resGEO.data.routes[0].geometry;
+
+          const mapLayer = map.getLayer("route");
+          //console.log(typeof mapLayer);
+          if (typeof mapLayer !== "undefined") {
+            map.removeLayer("route").removeSource("route");
+          }
+
           map.addLayer({
             id: "route",
             type: "line",
